@@ -10,6 +10,8 @@
 
 const pin_size_t motorPin = D12;
 const pin_size_t buttonPin = D8;
+const unsigned char X = 0;
+const unsigned char Y = 0;
 int buttonState = 0;
 bool alarm = false;
 
@@ -27,16 +29,19 @@ static bool debug_nn = false; // Set this to true to see e.g. features generated
 String Label;
 float confidence = 0.98;
 
+bool DEBUG = false;
+
 // Setup Function
 
 void setup()
 {
     // put your setup code here, to run once:
-    //Serial.begin(9600);               // initialize serial communication at 9600 bits per second:
-    //Serial1.begin(115200);            // initialize UART with baud rate of 9600
-    // comment out the below line to cancel the wait for USB connection (needed for native USB)
-    //while (!Serial);
-    //Serial.println("Edge Impulse Inferencing Demo");
+    if DEBUG {
+      Serial.begin(9600);               // initialize serial communication at 9600 bits per second:
+      while (!Serial);
+      Serial.println("Edge Impulse Inferencing Demo");
+    }
+
 
     // summary of inferencing settings (from model_metadata.h)
     ei_printf("Inferencing settings:\n");
@@ -52,6 +57,18 @@ void setup()
     }
     setupScreen();
     setupGpio();
+    bootUp();
+}
+
+void bootUp() {
+    SeeedOled.putString("Boot Up");        //Print the String
+    digitalWrite(motorPin, HIGH);          // Turn motor on
+    delay(5000);    // wait for 5 seconds
+    SeeedOled.clearDisplay();          //clear the screen and set start position to top left corner
+    SeeedOled.setNormalDisplay();      //Set display to normal mode (i.e non-inverse mode)
+    SeeedOled.setPageMode();           //Set addressing mode to Page Mode
+    SeeedOled.setTextXY(Y, X);         //Set the cursor to Xth Page, Yth Column
+    digitalWrite(motorPin, LOW);          // Turn motor off
 }
 
 void setupScreen() {
@@ -61,9 +78,7 @@ void setupScreen() {
     SeeedOled.clearDisplay();          //clear the screen and set start position to top left corner
     SeeedOled.setNormalDisplay();      //Set display to normal mode (i.e non-inverse mode)
     SeeedOled.setPageMode();           //Set addressing mode to Page Mode
-    SeeedOled.setTextXY(0, 0);         //Set the cursor to Xth Page, Yth Column
-    SeeedOled.putString("MOO"); //Print the String
-    //SeeedOled.setBrightness(0);
+    SeeedOled.setTextXY(Y, X);         //Set the cursor to Xth Page, Yth Column
 }
 
 void setupGpio() {
@@ -83,14 +98,11 @@ void loop()
 
       // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
       if (buttonState == HIGH) {
-        // turn LED on:
         digitalWrite(motorPin, LOW);
-        //SeeedOled.setBrightness(0);
         SeeedOled.clearDisplay();          //clear the screen and set start position to top left corner
-        //SeeedOled.setNormalDisplay();      //Set display to normal mode (i.e non-inverse mode)
+        SeeedOled.setNormalDisplay();      //Set display to normal mode (i.e non-inverse mode)
         SeeedOled.setPageMode();           //Set addressing mode to Page Mode
-        SeeedOled.setTextXY(0, 0);         //Set the cursor to Xth Page, Yth Column
-        //SeeedOled.putString("moo"); //Print the String
+        SeeedOled.setTextXY(Y, X);         //Set the cursor to Xth Page, Yth Column
         alarm = false;
       } 
     } else {
@@ -131,20 +143,25 @@ void loop()
           if(result.classification[ix].value > confidence )
                   {
                       Label = String(result.classification[ix].label);
-                      //Serial.println(Label);
+                      if DEBUG {
+                        Serial.println(Label);
+                      }
                       if (Label == "Fire Alarm")
                       {
                         alarm = true;
-                        //SeeedOled.setBrightness(255);
-                        SeeedOled.putString("Fire Alarm!"); //Print the String
+                        SeeedOled.putString("Fire Alarm!"); 
                         digitalWrite(motorPin, HIGH);
-                        //Serial.println("Fire Detected");
+
+                        if DEBUG {
+                          Serial.println("Fire Detected");
+                        }
                       }
                       else if (Label == "Background")
                       {
-                          //Serial.println("Background Noise");
+                        if DEBUG {
+                          Serial.println("Background Noise");
+                        }
                       }
-          
                     }
       }
     }
