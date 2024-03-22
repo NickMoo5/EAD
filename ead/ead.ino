@@ -10,8 +10,8 @@
 
 const pin_size_t motorPin = D12;
 const pin_size_t buttonPin = D8;
-const unsigned char X = 0;
-const unsigned char Y = 0;
+const unsigned char X = 3;
+const unsigned char Y = 5;
 int buttonState = 0;
 bool alarm = false;
 
@@ -36,7 +36,7 @@ bool DEBUG = false;
 void setup()
 {
     // put your setup code here, to run once:
-    if DEBUG {
+    if (DEBUG) {
       Serial.begin(9600);               // initialize serial communication at 9600 bits per second:
       while (!Serial);
       Serial.println("Edge Impulse Inferencing Demo");
@@ -143,7 +143,7 @@ void loop()
           if(result.classification[ix].value > confidence )
                   {
                       Label = String(result.classification[ix].label);
-                      if DEBUG {
+                      if (DEBUG) {
                         Serial.println(Label);
                       }
                       if (Label == "Fire Alarm")
@@ -152,13 +152,13 @@ void loop()
                         SeeedOled.putString("Fire Alarm!"); 
                         digitalWrite(motorPin, HIGH);
 
-                        if DEBUG {
+                        if (DEBUG) {
                           Serial.println("Fire Detected");
                         }
                       }
                       else if (Label == "Background")
                       {
-                        if DEBUG {
+                        if (DEBUG) {
                           Serial.println("Background Noise");
                         }
                       }
